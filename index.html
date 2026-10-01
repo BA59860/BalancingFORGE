@@ -10,22 +10,25 @@
   <link rel="stylesheet" href="styles.css">
   <script src="reactions.js" defer></script>
   <script src="chemistry.js" defer></script>
+  <script src="lessons.js" defer></script>
   <script src="app.js" defer></script>
 <link rel="stylesheet" href="forge-theme.css">
 <script src="forge-theme.js"></script>
 </head>
 <body class="forge-balancing">
-<a class="skip-link" href="#workspace">Skip to equation</a>
+<a class="skip-link" href="#workspace">Skip to learning area</a>
 <div class="app">
   <header>
-    <div class="forge-heading"><p class="eyebrow brand">CFL <span>/</span> CATALYST FORGE LABS</p><h1>Balancing<span>FORGE</span><small>v0.1</small></h1></div>
-    <div class="forge-header-tools"><div class="stats" aria-label="Practice progress"><div><b id="score">0</b><span>points</span></div><div><b id="streak">0</b><span>streak</span></div><div><b id="solved">0</b><span>/ 90 solved</span></div></div>
+    <div class="forge-heading"><p class="eyebrow brand">CFL <span>/</span> CATALYST FORGE LABS</p><h1>Balancing<span>FORGE</span><small>v0.2</small></h1></div>
+    <div class="forge-header-tools"><div class="stats" aria-label="Practice progress" hidden><div><b id="score">0</b><span>points</span></div><div><b id="streak">0</b><span>streak</span></div><div><b id="solved">0</b><span>/ 90 solved</span></div></div>
   <button class="forge-theme-toggle" data-forge-theme-toggle type="button" aria-label="Switch to light mode">Light mode</button></div></header>
   <nav class="toolbar" aria-label="Learning controls">
     <div class="mode-switch" role="group" aria-label="Mode"><button data-mode="learn" aria-pressed="true">Learn Mode</button><button data-mode="practice" aria-pressed="false">Practice Mode</button></div>
-    <div class="difficulty"><span id="level-label">Difficulty</span><div role="group" aria-labelledby="level-label"><button data-level="Easy" aria-pressed="true">Easy</button><button data-level="Medium" aria-pressed="false">Medium</button><button data-level="Challenge" aria-pressed="false">Challenge</button><button data-level="Surprise Me" aria-pressed="false">Surprise Me <span aria-hidden="true">↗</span></button></div></div>
+    <div class="difficulty" hidden><span id="level-label">Difficulty</span><div role="group" aria-labelledby="level-label"><button data-level="Easy" aria-pressed="true">Easy</button><button data-level="Medium" aria-pressed="false">Medium</button><button data-level="Challenge" aria-pressed="false">Challenge</button><button data-level="Surprise Me" aria-pressed="false">Surprise Me <span aria-hidden="true">↗</span></button></div></div>
   </nav>
   <main id="workspace" tabindex="-1">
+    <section id="learn-workspace" aria-label="Balancing tutorial"></section>
+    <div id="practice-workspace" hidden>
     <section class="equation-card" aria-labelledby="reaction-title">
       <div class="reaction-heading"><div><p class="eyebrow" id="reaction-meta">EASY · SYNTHESIS · 01 / 30</p><h2 id="reaction-title" tabindex="-1">Making water</h2></div><span class="status-tag" id="balance-status">1 of 2 elements balanced</span></div>
       <p class="instruction">Adjust the coefficients. Keep every atom accounted for.</p>
@@ -37,10 +40,11 @@
     </section>
     <div class="below-grid">
       <section class="inventory panel" aria-labelledby="inventory-title"><div class="section-heading"><h2 id="inventory-title">Atom inventory</h2><span class="small-label">UPDATES LIVE</span></div><p class="muted">Same atoms. Same totals. Both sides.</p><table><caption class="sr-only">Atom counts for the current coefficients</caption><thead><tr><th scope="col">Element</th><th scope="col">Reactants</th><th scope="col">Products</th><th scope="col">Balance</th></tr></thead><tbody id="atom-rows"></tbody></table><p id="count-detail" class="count-detail"></p></section>
-      <aside class="coach panel" aria-labelledby="coach-title"><div class="section-heading"><h2 id="coach-title">Your balancing guide</h2><span class="coach-badge">LEARN</span></div><div id="guide"></div><div class="golden-rule"><span class="small-label">THE GOLDEN RULE</span><p><strong>Coefficients change amounts.</strong><br>Subscripts change substances.</p><div class="rule-example"><span><b>2</b> H<sub>2</sub>O <small>two water molecules</small></span><span>H<sub>2</sub>O<sub>2</sub> <small>a different substance</small></span></div></div></aside>
+      <aside class="coach panel" aria-labelledby="coach-title"><div class="section-heading"><h2 id="coach-title">Make every atom count</h2><span class="coach-badge">PRACTICE</span></div><div id="guide"></div><div class="golden-rule"><span class="small-label">THE GOLDEN RULE</span><p><strong>Coefficients change amounts.</strong><br>Subscripts change substances.</p><div class="rule-example"><span><b>2</b> H<sub>2</sub>O <small>two water molecules</small></span><span>H<sub>2</sub>O<sub>2</sub> <small>a different substance</small></span></div></div></aside>
+    </div>
     </div>
   </main>
-  <footer><span>90 reactions. One conservation law.</span><details><summary>How practice works</summary><p>Earn 10 / 20 / 30 points for a new Easy / Medium / Challenge reaction. Each hint costs 2 potential points (minimum 2). Learn Mode is unscored. A wrong check or skipping an unfinished practice reaction ends your streak. Resetting coefficients keeps your hints and attempts. Previously solved reactions are review only.</p><p>Progress is saved in this browser on this device. No account, no data sent to a server. Reaction conditions and physical states are omitted to focus on balancing; this is not a lab procedure.</p><p>Background reading: <a href="https://openstax.org/books/chemistry-2e/pages/4-1-writing-and-balancing-chemical-equations" target="_blank" rel="noopener">OpenStax: Writing and balancing chemical equations</a>.</p></details><span id="save-status">Progress stays on this device</span></footer>
+  <footer><span>90 reactions. One conservation law.</span><details><summary>How practice works</summary><p>Earn 10 / 20 / 30 points for a new Easy / Medium / Challenge reaction. Each hint costs 2 potential points (minimum 2). Learn Mode has six unscored tutorial lessons. A wrong check, skipping an unfinished practice reaction, or leaving it for Learn ends your streak. Resetting coefficients keeps your hints and attempts. Previously solved reactions are review only.</p><p>Progress is saved in this browser on this device. No account, no data sent to a server. Reaction conditions and physical states are omitted to focus on balancing; this is not a lab procedure.</p><p>Background reading: <a href="https://openstax.org/books/chemistry-2e/pages/4-1-writing-and-balancing-chemical-equations" target="_blank" rel="noopener">OpenStax: Writing and balancing chemical equations</a>.</p></details><span id="save-status">Progress stays on this device</span></footer>
 </div>
 </body>
 </html>

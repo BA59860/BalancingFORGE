@@ -1,10 +1,11 @@
-# BalancingFORGE v0.1
+# BalancingFORGE v0.2
 
 A student-facing chemistry practice tool from Catalyst Forge Labs. Plain HTML, CSS, and JavaScript; no dependencies, account, analytics, or build step.
 
 ## Features
 
-- Learn Mode with a responsive balancing guide and worked atom counts.
+- Learn Mode with six tutorial lessons: counting atoms; balancing water; odd/even counts; unchanged polyatomic groups; combustion; and guided ammonia balancing.
+- Molecular counting graphics, a coefficient explorer, step-by-step worked equations with highlighted changes and atom inventories, and specific feedback for each guided answer.
 - Practice Mode with points, streaks, and credit for each unique reaction.
 - 90 reactions: 30 Easy, 30 Medium, and 30 Challenge. Surprise Me shuffles the whole bank without repeating a reaction within its current deck.
 - 18 synthesis, 16 decomposition, 20 combustion, 16 single replacement, 15 double replacement, and 5 additional redox problems. These are instructional categories; a combustion or replacement reaction may also be redox.
@@ -16,11 +17,11 @@ A student-facing chemistry practice tool from Catalyst Forge Labs. Plain HTML, C
 
 Open `index.html` directly, or serve this folder with any static web server. All assets use relative paths so GitHub Pages project URLs work. Publish the root of the `main` branch through GitHub Settings → Pages.
 
-The five runtime files are `index.html`, `styles.css`, `reactions.js`, `chemistry.js`, and `app.js`. Keep them together. No API keys or external scripts are used.
+The runtime files are `index.html`, `styles.css`, `reactions.js`, `chemistry.js`, `lessons.js`, `app.js`, `forge-theme.css`, and `forge-theme.js`. Keep them together. No API keys or external scripts are used.
 
 ## Scoring
 
-New Easy / Medium / Challenge solutions earn 10 / 20 / 30 points. Each hint reduces potential points by 2 (minimum 2). A wrong check or skipping an unfinished, uncredited practice reaction ends the streak. A balanced multiple prompts simplification without breaking the streak. Rechecking or resetting a solved reaction never awards points twice. Learn Mode is unscored and retains separate in-visit state from Practice Mode. Switching modes opens another reaction.
+New Easy / Medium / Challenge solutions earn 10 / 20 / 30 points. Each hint reduces potential points by 2 (minimum 2). A wrong check or skipping an unfinished, uncredited practice reaction ends the streak. A balanced multiple prompts simplification without breaking the streak. Rechecking or resetting a solved reaction never awards points twice. Learn Mode is unscored and hides the practice score and difficulty controls. Switching modes preserves tutorial position and the current practice equation during this visit. Leaving an unfinished, uncredited practice equation for Learn ends the practice streak, just like skipping it. Tutorial decisions do not award or remove points.
 
 Score, streak, and unique solved IDs persist in local storage for the current browser and origin. Coefficients, hint usage, and navigation queues last for the current page visit. Progress does not sync between browsers or devices. If browser storage is blocked, the app continues and tells the student that progress will last for this visit.
 
@@ -34,12 +35,12 @@ Concept reference: [OpenStax Chemistry 2e, Writing and Balancing Chemical Equati
 
 ## Verification
 
-Run `node test.cjs` to check all 90 reactions, per-level totals, unique equations, minimal integer ratios, matrix rank, wrong-answer rejection, parentheses, repeated symbols, and coefficient bounds.
+Run `node test.cjs` to check all 90 reactions, per-level totals, unique equations, minimal integer ratios, matrix rank, wrong-answer rejection, parentheses, repeated symbols, and coefficient bounds. The same suite verifies tutorial inventories, final worked ratios, the fractional combustion example, guided-answer feedback, and simplification.
 
 Interactive verification includes Learn and Practice flows, smallest-ratio feedback, rejected invalid values, hint deductions, duplicate-score protection, streak reset, difficulty changes, and desktop/mobile layout. The active-mode highlight and narrow-screen button text were adjusted during visual verification. A 320-pixel phone check exposed atom-table overflow; reduced table padding fixed it, and 320-, 390-, and 768-pixel checks showed no horizontal page overflow.
 
-An optional, feature-detected WebMCP interface exposes `read_balancing_exercise`, `set_balancing_coefficients`, and `check_balancing_answer`. These use the same validation and state as the visible controls. Browsers without WebMCP use the standard interface without any dependency on it.
+An optional, feature-detected WebMCP interface exposes `read_balancing_exercise`, `set_balancing_coefficients`, and `check_balancing_answer`. The read tool reports the visible lesson in Learn or the equation in Practice. Coefficient changes and answer checks require Practice Mode and use the same validation and state as the visible controls. Browsers without WebMCP use the standard interface without any dependency on it.
 
 ## Limits
 
-This is a formative practice tool, not a secured assessment system. The reaction bank and answer data are public source, and local progress can be cleared or edited. No teacher dashboard, student identity, cloud sync, or LMS grade passback is included in v0.1.
+This is a formative practice tool, not a secured assessment system. The reaction bank and answer data are public source, and local progress can be cleared or edited. No teacher dashboard, student identity, cloud sync, or LMS grade passback is included in v0.2.

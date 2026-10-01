@@ -4,7 +4,7 @@ const C=window.Chemistry,bank=window.REACTIONS,$=s=>document.querySelector(s);
 const fmt=s=>s.replace(/(\d+)/g,'<sub>$1</sub>'),spoken=s=>s.replace(/([A-Z][a-z]?|\d+|[()])/g,'$1 ').trim();
 const KEY='cfl-balancingforge-v01',ids=new Set(bank.map(r=>r.id));
 let progress={score:0,streak:0,solved:[]},storageAvailable=true;
-let mode='learn',level='Easy',current=bank[0],values=[],hints=0,completed=false,lastChanged=0;
+let screen='learn',mode='practice',level='Easy',current=bank[0],values=[],hints=0,completed=false,lastChanged=0;
 const queues=new Map(),history=new Map();
 try{const p=JSON.parse(localStorage.getItem(KEY));if(p&&Number.isSafeInteger(p.score)&&p.score>=0&&Number.isSafeInteger(p.streak)&&p.streak>=0&&Array.isArray(p.solved))progress={score:p.score,streak:p.streak,solved:[...new Set(p.solved.filter(id=>ids.has(id)))]};}catch{storageAvailable=false;}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(progress));}catch{storageAvailable=false;}$('#save-status').textContent=storageAvailable?'Progress stays on this device':'Storage unavailable · progress lasts for this visit';}
@@ -30,9 +30,9 @@ function renderEquation(){
 function render(){
  $('#reaction-title').textContent=current.title;const pool=bank.filter(r=>r.level===current.level);
  $('#reaction-meta').textContent=`${current.level.toUpperCase()} · ${current.type.toUpperCase()} · ${String(pool.indexOf(current)+1).padStart(2,'0')} / ${pool.length}${progress.solved.includes(current.id)?' · REVIEW':''}`;
- document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+ document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===screen)));
  document.querySelectorAll('[data-level]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.level===level)));
- $('#coach-title').textContent=mode==='learn'?'Your balancing guide':'Make every atom count';$('.coach-badge').textContent=mode.toUpperCase();
+ $('#coach-title').textContent='Make every atom count';$('.coach-badge').textContent='PRACTICE';
  $('#hint').textContent=hints>=3?'All 3 hints used':hints?`Next hint (${hints}/3 used)`:'Give me a hint';$('#hint').disabled=hints>=3;
  renderEquation();updateCounts();stats();
 }
@@ -44,15 +44,8 @@ function updateCounts(){
  $('#atom-rows').innerHTML=atoms.map(a=>`<tr><td><span class="element">${a.element}</span></td><td>${a.left}</td><td>${a.right}</td><td class="${a.left===a.right?'matched':'unmatched'}">${a.left===a.right?'✓ Matched':'≠ Adjust'}</td></tr>`).join('');
  const formula=[...current.left,...current.right][lastChanged],coefficient=values[lastChanged],entries=Object.entries(C.parseFormula(formula));
  $('#count-detail').innerHTML=`${coefficient} ${fmt(formula)} contributes ${entries.map(([e,n])=>`${coefficient} × ${n} = ${coefficient*n} ${e}`).join('; ')} atoms.`;
- if(mode==='learn'){
-  const mismatch=atoms.find(a=>a.left!==a.right);
-  $('#guide').innerHTML=step(1,'Read the formula.',`In ${fmt(formula)}, ${entries.map(([e,n])=>`${e}: ${n}`).join(', ')}. A coefficient multiplies all of those atoms.`)
-  +step(2,mismatch?`Focus on ${mismatch.element}.`:'Every element matches.',mismatch?`Right now: ${mismatch.left} on the reactant side and ${mismatch.right} on the product side. ${current.tip}`:'Check that no common factor greater than 1 divides all your coefficients.')
-  +step(3,'Check, then move on.','Recount after each change. When every row matches in the smallest ratio, use Check Answer. Learn Mode has no points or penalties.');
- }else{
   const earned=Math.max(2,{Easy:10,Medium:20,Challenge:30}[current.level]-2*hints),review=progress.solved.includes(current.id);
   $('#guide').innerHTML=step(1,'Build the smallest ratio.','Match every element, using whole-number coefficients from 1 to 99. The formulas stay fixed.')+step(2,review?'A little review.':`${earned} points available.`,review?'You already earned credit for this reaction. Revisit it as often as you like.':'Hints reduce available points by 2 each. A wrong check ends your streak; you can keep trying.');
- }
  document.querySelectorAll('[data-adjust]').forEach(b=>{b.disabled=!C.validCoefficient(values[+b.dataset.index]+Number(b.dataset.adjust));});
 }
 function changeCoefficient(index,value){
@@ -62,12 +55,12 @@ function changeCoefficient(index,value){
 }
 function validInputs(){for(const input of document.querySelectorAll('.coefficient input'))if(!/^[1-9]\d?$/.test(input.value)){feedback('Use a whole-number coefficient from 1 to 99. No zeroes, negatives, or decimals.');input.setAttribute('aria-invalid','true');input.focus();return false;}return true;}
 function checkAnswer(){
+ if(screen!=='practice')throw Error('Switch to Practice Mode to check coefficients.');
  if(!validInputs())return{status:'invalid'};
  const r=C.check(current,values);
  if(!r.balanced){if(mode==='practice'&&!completed&&!progress.solved.includes(current.id)){progress.streak=0;save();stats();}feedback(`Not balanced yet. ${r.atoms.filter(a=>a.left!==a.right).map(a=>`${a.element}: ${a.left} on the left, ${a.right} on the right`).join('; ')}. Adjust a coefficient and recount every element.`);return{status:'unbalanced',atoms:r.atoms};}
  if(!r.simplest){feedback(`The atoms match! Now simplify: divide ALL coefficients by ${r.factor} for the smallest whole-number ratio. Your streak is unchanged.`);return{status:'simplify',factor:r.factor};}
- if(mode==='learn')feedback('Balanced! Every atom is conserved, and this is the smallest whole-number ratio. Ready for the next reaction?',true);
- else if(completed||progress.solved.includes(current.id))feedback('Balanced! You already earned credit for this reaction. Try the next one for a new challenge.',true);
+ if(completed||progress.solved.includes(current.id))feedback('Balanced! You already earned credit for this reaction. Try the next one for a new challenge.',true);
  else{const earned=Math.max(2,{Easy:10,Medium:20,Challenge:30}[current.level]-2*hints);progress.score+=earned;progress.streak++;progress.solved.push(current.id);save();stats();updateCounts();feedback(`Balanced! +${earned} points · ${progress.streak} in a row. Every atom is accounted for.`,true);}
  completed=true;remember();return{status:'correct',score:progress.score,streak:progress.streak};
 }
@@ -87,14 +80,24 @@ $('#equation').addEventListener('keydown',e=>{if(!e.target.matches('input[data-i
 $('#check').addEventListener('click',checkAnswer);$('#hint').addEventListener('click',showHint);
 $('#reset').addEventListener('click',()=>{values.fill(1);lastChanged=0;$('#feedback').hidden=true;$('#hint-box').hidden=true;renderEquation();updateCounts();remember();feedback('Coefficients reset to 1. Your hints and earned credit are unchanged.');});
 $('#next').addEventListener('click',()=>{leave();start(nextReaction());$('#reaction-title').focus();});
-document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{if(mode===b.dataset.mode)return;leave();mode=b.dataset.mode;start(nextReaction());}));
+function showMode(next,focus=false){
+ if(screen==='practice'&&next!=='practice')leave();
+ screen=next;
+ $('#learn-workspace').hidden=screen!=='learn';$('#practice-workspace').hidden=screen!=='practice';
+ $('.stats').hidden=screen!=='practice';$('.difficulty').hidden=screen!=='practice';
+ document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===screen)));
+ if(focus){const target=$(screen==='learn'?'#lesson-title':'#reaction-title');target?.focus({preventScroll:true});$('#workspace').scrollIntoView({block:'start'});}
+}
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{if(screen!==b.dataset.mode)showMode(b.dataset.mode,true);}));
 document.querySelectorAll('[data-level]').forEach(b=>b.addEventListener('click',()=>{if(level===b.dataset.level&&level!=='Surprise Me')return;leave();level=b.dataset.level;if(level==='Surprise Me')start(nextReaction());else{const pool=bank.filter(r=>r.level===level),next=pool.find(r=>r.id!==current.id&&!progress.solved.includes(r.id))||pool[0];queues.set(mode+level,pool.filter(r=>r.id!==next.id));start(next);}}));
 start(current);save();
+window.BalancingLessons.mount($('#learn-workspace'),()=>showMode('practice',true));
+showMode('learn');
 // Progressive enhancement for browsers that support the proposed WebMCP interface.
 if(document.modelContext?.registerTool){
  const lifecycle=new AbortController(),register=tool=>{try{Promise.resolve(document.modelContext.registerTool(tool,{signal:lifecycle.signal})).catch(()=>{});}catch{}};
- register({name:'read_balancing_exercise',description:'Read the current equation, coefficients and atom inventory.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>({id:current.id,mode,level:current.level,left:current.left,right:current.right,coefficients:[...values],atoms:C.inventory(current,values)})});
- register({name:'set_balancing_coefficients',description:'Set all coefficients without checking the answer or awarding points.',inputSchema:{type:'object',properties:{coefficients:{type:'array',items:{type:'integer',minimum:1,maximum:99}}},required:['coefficients'],additionalProperties:false},execute:input=>{if(!Array.isArray(input?.coefficients)||input.coefficients.length!==values.length||!input.coefficients.every(C.validCoefficient))throw Error('Supply one whole number from 1 to 99 for each formula.');input.coefficients.forEach((v,i)=>changeCoefficient(i,v));return{coefficients:[...values],atoms:C.inventory(current,values)};}});
+ register({name:'read_balancing_exercise',description:'Read the visible tutorial lesson or Practice equation, coefficients and atom inventory.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:()=>screen==='learn'?{mode:screen,...window.BalancingLessons.read()}:({id:current.id,mode:screen,level:current.level,left:current.left,right:current.right,coefficients:[...values],atoms:C.inventory(current,values)})});
+ register({name:'set_balancing_coefficients',description:'In Practice Mode, set all coefficients without checking the answer or awarding points.',inputSchema:{type:'object',properties:{coefficients:{type:'array',items:{type:'integer',minimum:1,maximum:99}}},required:['coefficients'],additionalProperties:false},execute:input=>{if(screen!=='practice')throw Error('Switch to Practice Mode to change coefficients.');if(!Array.isArray(input?.coefficients)||input.coefficients.length!==values.length||!input.coefficients.every(C.validCoefficient))throw Error('Supply one whole number from 1 to 99 for each formula.');input.coefficients.forEach((v,i)=>changeCoefficient(i,v));return{coefficients:[...values],atoms:C.inventory(current,values)};}});
  register({name:'check_balancing_answer',description:'Check the visible coefficients; Practice Mode updates points and streak.',inputSchema:{type:'object',properties:{},additionalProperties:false},execute:checkAnswer});
  window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
 }

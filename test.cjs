@@ -40,3 +40,40 @@ for(const r of bank){
 }
 console.log('PASS: 90 unique reactions, 30 per level, atom conservation, simplest ratios, unambiguous solutions, wrong-answer rejection, parentheses, repeated elements, and coefficient bounds.');
 console.log(Object.fromEntries([...new Set(bank.map(r=>r.type))].map(type=>[type,bank.filter(r=>r.type===type).length])));
+
+// Tutorial examples and decisions share the production chemistry checker.
+const L = require('./lessons.js');
+const worked = L.lessons.filter(l=>l.kind==='worked');
+assert.equal(worked.length,4);
+for (const lesson of worked) {
+ for (const step of lesson.steps) {
+  assert.equal(step.values.length,lesson.left.length+lesson.right.length);
+  assert.ok(step.values.every(C.validCoefficient));
+  const result=C.check(lesson,step.values);
+  assert.ok(result.atoms.every(a=>Number.isInteger(a.left)&&Number.isInteger(a.right)));
+ }
+ assert.ok(C.check(lesson,lesson.steps.at(-1).values).simplest,lesson.title);
+}
+assert.deepEqual(C.inventory(L.lessons[1],[1,1,2]),[
+ {element:'H',left:2,right:4},{element:'O',left:2,right:2}
+]);
+assert.deepEqual(C.inventory(L.lessons[3],[2,3,1,6]),[
+ {element:'Na',left:6,right:6},{element:'P',left:2,right:2},
+ {element:'O',left:8,right:8},{element:'Ca',left:3,right:3},
+ {element:'Cl',left:6,right:6}
+]);
+assert.deepEqual(C.inventory(L.lessons[4],[1,1,3,4]),[
+ {element:'C',left:3,right:3},{element:'H',left:8,right:8},{element:'O',left:2,right:10}
+]);
+for(const q of [...L.guided,L.countQuestion])for(let i=0;i<q.choices.length;i++){
+ const feedback=L.answerFeedback(q,i);
+ assert.equal(feedback.correct,i===q.answer);
+ assert.ok(feedback.text.length>35);
+}
+const ammonia={left:['N2','H2'],right:['NH3']};
+assert.ok(!C.check(ammonia,L.guided[1].values).balanced);
+const multiple=C.check(ammonia,L.guided[2].values);
+assert.ok(multiple.balanced);assert.ok(!multiple.simplest);assert.equal(multiple.factor,2);
+assert.ok(C.check(ammonia,[1,3,2]).simplest);
+assert.ok(C.check({left:['C2H6','O2'],right:['CO2','H2O']},[2,7,4,6]).simplest);
+console.log('PASS: tutorial atom inventories, all worked final ratios, ethane fraction example, guided choices, and simplification.');
